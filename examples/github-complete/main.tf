@@ -12,6 +12,26 @@ locals {
   }
 }
 
+data "aws_iam_policy_document" "document" {
+  statement {
+    sid = "1"
+
+    actions = [
+      "s3:ListAllMyBuckets",
+      "s3:GetBucketLocation",
+    ]
+
+    resources = [
+      "arn:aws:s3:::*",
+    ]
+  }
+}
+
+resource "aws_iam_policy" "my-policy" {
+  name_prefix = "mypolicy"
+  policy = data.aws_iam_policy_document.document.json
+}
+
 ################################################################################
 # Supporting Resources
 ################################################################################
@@ -95,6 +115,8 @@ module "atlantis" {
   allow_github_webhooks        = true
   allow_repo_config            = true
 
+  policies_arn = ["${aws_iam_policy.my-policy.arn}"]
+  
   tags = local.tags
 }
 
